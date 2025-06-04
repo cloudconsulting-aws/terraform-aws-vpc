@@ -6,4 +6,5 @@ terraform {
     encrypt      = true
     use_lockfile = true
   }
+  required_version = "~> 1.10"
 }

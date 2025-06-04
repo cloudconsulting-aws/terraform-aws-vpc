@@ -55,7 +55,9 @@ resource "aws_route_table_association" "public" {
 }
 
 resource "aws_eip" "nat" {
-  vpc = true
+  tags = merge({
+    Name = "${var.project_name}-nat-eip"
+  }, var.tags)
 }
 
 resource "aws_nat_gateway" "main" {

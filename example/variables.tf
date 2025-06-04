@@ -16,16 +16,6 @@ variable "private_subnet_cidr_block" {
   default     = "10.0.2.0/24"
 }
 
-variable "aws_access_key" {
-  description = "The AWS access key."
-  type        = string
-}
-
-variable "aws_secret_key" {
-  description = "The AWS secret key."
-  type        = string
-}
-
 variable "aws_region" {
   description = "The AWS region where resources will be created."
   type        = string
