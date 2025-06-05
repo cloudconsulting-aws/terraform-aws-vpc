@@ -16,8 +16,9 @@ resource "aws_internet_gateway" "main" {
 }
 
 resource "aws_subnet" "public" {
+  for_each                = toset([for i in range(var.public_subnet_count) : cidrsubnet(var.vpc_cidr_block, var.ips_per_subnet_exponent, i)])
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = var.public_subnet_cidr_block
+  cidr_block              = each.value
   map_public_ip_on_launch = true
   tags = merge({
     Name = "${var.project_name}-public-subnet"
@@ -26,8 +27,9 @@ resource "aws_subnet" "public" {
 }
 
 resource "aws_subnet" "private" {
+  for_each   = toset([for i in range(var.private_subnet_count) : cidrsubnet(var.vpc_cidr_block, var.ips_per_subnet_exponent, i)])
   vpc_id     = aws_vpc.main.id
-  cidr_block = var.private_subnet_cidr_block
+  cidr_block = each.value
   tags = merge({
     Name = "${var.project_name}-private-subnet" },
     var.tags
@@ -50,7 +52,8 @@ resource "aws_route" "public_internet_access" {
 }
 
 resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.public.id
+  for_each       = { for idx, subnet in aws_subnet.public : idx => subnet }
+  subnet_id      = each.value.id
   route_table_id = aws_route_table.public.id
 }
 
@@ -62,7 +65,8 @@ resource "aws_eip" "nat" {
 
 resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public.id
+  # Getting the first public subnet for NAT Gateway
+  subnet_id = values(aws_subnet.public)[0].id
   tags = merge({
     Name = "${var.project_name}-nat-gateway"
   }, var.tags)
@@ -84,6 +88,7 @@ resource "aws_route" "private_internet_access" {
 }
 
 resource "aws_route_table_association" "private" {
-  subnet_id      = aws_subnet.private.id
+  for_each       = { for idx, subnet in aws_subnet.private : idx => subnet }
+  subnet_id      = each.value.id
   route_table_id = aws_route_table.private.id
 }

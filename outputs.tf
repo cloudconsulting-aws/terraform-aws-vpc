@@ -10,12 +10,12 @@ output "vpc_cidr_block" {
 
 output "public_subnet_ids" {
   description = "The IDs of the public subnets"
-  value       = aws_subnet.public[*].id
+  value       = [for assoc in aws_subnet.public : assoc.id]
 }
 
 output "private_subnet_ids" {
   description = "The IDs of the private subnets"
-  value       = aws_subnet.private[*].id
+  value       = [for assoc in aws_subnet.private : assoc.id]
 }
 
 output "nat_gateway_ids" {
@@ -25,12 +25,12 @@ output "nat_gateway_ids" {
 
 output "public_route_table_ids" {
   description = "The IDs of the public route tables"
-  value       = aws_route_table.public[*].id
+  value       = [for assoc in aws_route_table_association.public : assoc.id]
 }
 
 output "private_route_table_ids" {
   description = "The IDs of the private route tables"
-  value       = aws_route_table.private[*].id
+  value       = [for assoc in aws_route_table_association.private : assoc.id]
 }
 
 output "internet_gateway_id" {
