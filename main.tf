@@ -16,22 +16,23 @@ resource "aws_internet_gateway" "main" {
 }
 
 resource "aws_subnet" "public" {
-  for_each                = toset([for i in range(var.public_subnet_count) : cidrsubnet(var.vpc_cidr_block, var.ips_per_subnet_exponent, i)])
+  for_each                = toset(local.public_subnet_cidrs)
   vpc_id                  = aws_vpc.main.id
   cidr_block              = each.value
+  availability_zone       = element(var.availability_zones, index(local.public_subnet_cidrs, each.value))
   map_public_ip_on_launch = true
   tags = merge({
-    Name = "${var.project_name}-public-subnet-${each.key}"
+    Name = "${var.project_name}-public-subnet-${index(local.public_subnet_cidrs, each.value) + 1}"
   }, var.tags)
-
 }
 
 resource "aws_subnet" "private" {
-  for_each   = toset([for i in range(var.public_subnet_count, local.total_subnets) : cidrsubnet(var.vpc_cidr_block, var.ips_per_subnet_exponent, i)])
-  vpc_id     = aws_vpc.main.id
-  cidr_block = each.value
+  for_each          = toset(local.private_subnet_cidrs)
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = each.value
+  availability_zone = element(var.availability_zones, index(local.private_subnet_cidrs, each.value))
   tags = merge({
-    Name = "${var.project_name}-private-subnet-${each.key}" },
+    Name = "${var.project_name}-private-subnet-${index(local.private_subnet_cidrs, each.value) + 1}" },
     var.tags
   )
   depends_on = [aws_subnet.public] # Ensure public subnets are created first
